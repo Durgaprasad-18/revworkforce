@@ -1,0 +1,192 @@
+drop database revworkforce;
+create database revworkforce;
+use revworkforce;
+-- order of creation of tables
+/*1. employee
+2. department
+3. designation
+4. employee_details
+5. leave_type
+6. leave_balance
+7. leave_application
+8. performance_review
+9. goal
+10. notification
+11. company_holiday
+12. announcement
+13. audit_log
+*/
+CREATE TABLE employee (
+    employee_id INT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    email VARCHAR(100) UNIQUE NOT NULL,
+    password VARCHAR(255) NOT NULL,
+    phone VARCHAR(15),
+    address VARCHAR(255),
+    dob DATE,
+    role VARCHAR(20) NOT NULL,        -- EMPLOYEE / MANAGER / ADMIN
+    manager_id INT,
+    status VARCHAR(10) DEFAULT 'ACTIVE',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (manager_id) REFERENCES employee(employee_id)
+);
+
+desc employee;
+ALTER TABLE employee
+ADD emergency_contact VARCHAR(20);
+
+CREATE TABLE department (
+    department_id INT AUTO_INCREMENT PRIMARY KEY,
+    department_name VARCHAR(50) NOT NULL UNIQUE
+);
+select * from department;
+
+CREATE TABLE designation (
+    designation_id INT AUTO_INCREMENT PRIMARY KEY,
+    designation_name VARCHAR(50) NOT NULL UNIQUE
+);
+
+
+CREATE TABLE employee_details (
+    employee_id INT PRIMARY KEY,
+    department_id INT NOT NULL,
+    designation_id INT NOT NULL,
+    joining_date DATE NOT NULL,
+    salary DECIMAL(10,2),
+    FOREIGN KEY (employee_id) REFERENCES employee(employee_id),
+    FOREIGN KEY (department_id) REFERENCES department(department_id),
+    FOREIGN KEY (designation_id) REFERENCES designation(designation_id)
+);
+
+
+CREATE TABLE leave_type (
+    leave_type_id INT AUTO_INCREMENT PRIMARY KEY,
+    leave_name VARCHAR(20) NOT NULL UNIQUE,   -- CL, SL, PL, PRIVILEGE
+    max_days INT NOT NULL
+);
+select * from leave_type;
+
+CREATE TABLE leave_balance (
+    balance_id INT AUTO_INCREMENT PRIMARY KEY,
+    employee_id INT NOT NULL,
+    leave_type_id INT NOT NULL,
+    remaining_days INT NOT NULL,
+    FOREIGN KEY (employee_id) REFERENCES employee(employee_id),
+    FOREIGN KEY (leave_type_id) REFERENCES leave_type(leave_type_id),
+    UNIQUE (employee_id, leave_type_id)
+);
+select * from leave_balance;
+
+CREATE TABLE leave_application (
+    leave_id INT AUTO_INCREMENT PRIMARY KEY,
+    employee_id INT NOT NULL,
+    leave_type_id INT NOT NULL,
+    start_date DATE NOT NULL,
+    end_date DATE NOT NULL,
+    reason VARCHAR(255),
+    status VARCHAR(20) DEFAULT 'PENDING',   -- PENDING / APPROVED / REJECTED
+    manager_comment VARCHAR(255),
+    applied_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (employee_id) REFERENCES employee(employee_id),
+    FOREIGN KEY (leave_type_id) REFERENCES leave_type(leave_type_id)
+);
+select * from leave_application;
+
+
+CREATE TABLE performance_review (
+    review_id INT AUTO_INCREMENT PRIMARY KEY,
+    employee_id INT NOT NULL,
+    review_year INT NOT NULL,
+    self_rating INT CHECK (self_rating BETWEEN 1 AND 5),
+    manager_rating INT CHECK (manager_rating BETWEEN 1 AND 5),
+    feedback TEXT,
+    status VARCHAR(20) DEFAULT 'SUBMITTED', -- SUBMITTED / REVIEWED
+    FOREIGN KEY (employee_id) REFERENCES employee(employee_id)
+);
+desc performance_review;
+
+CREATE TABLE goal (
+    goal_id INT AUTO_INCREMENT PRIMARY KEY,
+    employee_id INT NOT NULL,
+    description VARCHAR(255) NOT NULL,
+    deadline DATE,
+    priority VARCHAR(10),      -- HIGH / MEDIUM / LOW
+    progress INT DEFAULT 0,    -- percentage
+    FOREIGN KEY (employee_id) REFERENCES employee(employee_id)
+);
+select * from goal;
+
+
+CREATE TABLE notification (
+    notification_id INT AUTO_INCREMENT PRIMARY KEY,
+    employee_id INT NOT NULL,
+    message VARCHAR(255) NOT NULL,
+    is_read BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (employee_id) REFERENCES employee(employee_id)
+);
+
+CREATE TABLE company_holiday (
+    holiday_id INT AUTO_INCREMENT PRIMARY KEY,
+    holiday_name VARCHAR(50) NOT NULL,
+    holiday_date DATE NOT NULL
+);
+select * from company_holiday;
+desc company_holiday;
+
+
+CREATE TABLE announcement (
+    announcement_id INT AUTO_INCREMENT PRIMARY KEY,
+    title VARCHAR(100) NOT NULL,
+    message TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE audit_log (
+    log_id INT AUTO_INCREMENT PRIMARY KEY,
+    employee_id INT,
+    action VARCHAR(100) NOT NULL,
+    log_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (employee_id) REFERENCES employee(employee_id)
+);
+
+
+INSERT INTO employee 
+(employee_id, name, email, password, role)
+VALUES (1, 'Admin User', 'admin@rev.com', 'admin123', 'ADMIN');
+
+select * from employee;
+
+INSERT INTO department (department_name)
+VALUES ('IT'), ('HR'), ('Finance');
+
+select * from department;
+
+INSERT INTO designation (designation_name)
+VALUES ('Software Engineer'), ('Manager'), ('HR Executive');
+
+select * from designation;
+
+INSERT INTO leave_type (leave_name, max_days)
+VALUES ('CL', 12), ('SL', 10), ('PL', 15), ('PRIVILEGE', 20);
+
+select * from leave_type;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
